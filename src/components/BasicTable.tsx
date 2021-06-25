@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTable } from "react-table";
 import MOCK_DATA from "../MOCK_DATA.json";
 import { COLUMNS, DataStructure } from "./columns";
+import "./table.css";
 
 export const BasicTable = () => {
   const columns = React.useMemo(() => COLUMNS, []);
