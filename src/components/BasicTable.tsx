@@ -8,8 +8,14 @@ export const BasicTable = () => {
   const columns = React.useMemo(() => COLUMNS, []);
   const data = React.useMemo(() => MOCK_DATA, []);
 
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable<DataStructure>({ columns, data });
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    footerGroups,
+    rows,
+    prepareRow,
+  } = useTable<DataStructure>({ columns, data });
 
   return (
     <table {...getTableProps()}>
@@ -34,6 +40,15 @@ export const BasicTable = () => {
           );
         })}
       </tbody>
+      <tfoot>
+        {footerGroups.map(footerGroup => (
+          <tr {...footerGroup.getFooterGroupProps()}>
+            {footerGroup.headers.map(column => (
+              <td {...column.getFooterProps()}>{column.render("Footer")}</td>
+            ))}
+          </tr>
+        ))}
+      </tfoot>
     </table>
   );
 };
