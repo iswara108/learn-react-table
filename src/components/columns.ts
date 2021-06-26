@@ -1,4 +1,5 @@
 import { Column } from "react-table";
+import dayjs from "dayjs";
 
 export interface DataStructure {
   id: number;
@@ -19,6 +20,7 @@ export const COLUMNS: Column<DataStructure>[] = [
     Header: "Date of Birth",
     Footer: "Date of Birth",
     accessor: "date_of_birth",
+    Cell: ({ value }) => dayjs(value).format("MMM DD, YYYY H:mm:ss"),
   },
   { Header: "Country", Footer: "Country", accessor: "country" },
   { Header: "Phone", Footer: "Phone", accessor: "phone" },
