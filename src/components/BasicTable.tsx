@@ -204,6 +204,8 @@ export const BasicTable = () => {
     visibleColumns,
     state,
     page,
+    gotoPage,
+    pageCount,
     nextPage,
     previousPage,
     canNextPage,
@@ -211,7 +213,7 @@ export const BasicTable = () => {
     pageOptions,
     state: { pageIndex },
   } = useTable<DataStructure>(
-    { columns, data, defaultColumn },
+    { columns, data, defaultColumn, initialState: { pageIndex: 3 } },
     useBlockLayout,
     useResizeColumns,
     useColumnOrder,
@@ -332,6 +334,22 @@ export const BasicTable = () => {
                 Page <strong>{pageIndex + 1}</strong> of{" "}
                 <strong>{pageOptions.length}</strong>{" "}
               </span>
+              <span>
+                | Go to page:{" "}
+                <input
+                  type='number'
+                  value={pageIndex + 1}
+                  onChange={e => {
+                    const pageNumber = e.target.value
+                      ? Number(e.target.value) - 1
+                      : 0;
+                    gotoPage(pageNumber);
+                  }}
+                />
+              </span>
+              <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
+                {"<<"}
+              </button>
               <button
                 onClick={() => previousPage()}
                 disabled={!canPreviousPage}
@@ -340,6 +358,12 @@ export const BasicTable = () => {
               </button>
               <button onClick={() => nextPage()} disabled={!canNextPage}>
                 Next
+              </button>
+              <button
+                onClick={() => gotoPage(pageCount - 1)}
+                disabled={!canNextPage}
+              >
+                {">>"}
               </button>
             </div>
             <pre>
