@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useAsyncDebounce } from "react-table";
 
 export const GlobalFilter = ({
   filter,
@@ -7,9 +8,22 @@ export const GlobalFilter = ({
   filter: string;
   setFilter: (filterValue: string) => void;
 }) => {
+  const [value, setValue] = React.useState(filter);
+
+  const onChange = useAsyncDebounce(value => {
+    setFilter(value || undefined);
+  }, 500);
+
   return (
     <span>
-      Search: <input value={filter} onChange={e => setFilter(e.target.value)} />
+      Search:{" "}
+      <input
+        value={value}
+        onChange={e => {
+          setValue(e.target.value);
+          onChange(e.target.value);
+        }}
+      />
     </span>
   );
 };
