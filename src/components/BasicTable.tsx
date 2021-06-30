@@ -211,7 +211,8 @@ export const BasicTable = () => {
     canNextPage,
     canPreviousPage,
     pageOptions,
-    state: { pageIndex },
+    state: { pageIndex, pageSize },
+    setPageSize,
   } = useTable<DataStructure>(
     { columns, data, defaultColumn, initialState: { pageIndex: 3 } },
     useBlockLayout,
@@ -347,6 +348,16 @@ export const BasicTable = () => {
                   }}
                 />
               </span>
+              <select
+                value={pageSize}
+                onChange={e => setPageSize(Number(e.target.value))}
+              >
+                {[10, 25, 50].map(pageSize => (
+                  <option key={pageSize} value={pageSize}>
+                    Show {pageSize}
+                  </option>
+                ))}
+              </select>
               <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
                 {"<<"}
               </button>
