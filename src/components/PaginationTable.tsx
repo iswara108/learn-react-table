@@ -4,7 +4,7 @@ import MOCK_DATA from "../MOCK_DATA.json";
 import { COLUMNS, DataStructure } from "./columns";
 import "./table.css";
 
-export const BasicTable = () => {
+export const PaginationTable = () => {
   const columns = React.useMemo(() => COLUMNS, []);
   const data = React.useMemo(() => MOCK_DATA, []);
 
