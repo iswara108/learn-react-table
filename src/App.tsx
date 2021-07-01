@@ -1,11 +1,11 @@
 import React from "react";
 import "./App.css";
-import { BasicTable } from "./components/BasicTable";
+import { ColumnOrder } from "./components/ColumnOrder";
 
 function App() {
   return (
     <div className='App'>
-      <BasicTable></BasicTable>
+      <ColumnOrder />
     </div>
   );
 }
