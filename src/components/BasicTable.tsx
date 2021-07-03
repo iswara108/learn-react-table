@@ -23,8 +23,12 @@ const Styled = styled.div`
     position: sticky;
   }
 
-  td.sticky-col {
-    background-color: white;
+  table tbody tr:nth-child(odd) td.sticky-col {
+    background-color: #fff;
+  }
+
+  table tbody tr:nth-child(even) td.sticky-col {
+    background-color: #f2f2f2;
   }
 
   .first-col {
@@ -106,7 +110,16 @@ export const BasicTable = () => {
             {footerGroups.map(footerGroup => (
               <tr {...footerGroup.getFooterGroupProps()}>
                 {footerGroup.headers.map(column => (
-                  <td {...column.getFooterProps()}>
+                  <td
+                    {...column.getFooterProps()}
+                    className={
+                      column.id === "id"
+                        ? "sticky-col first-col"
+                        : column.id === "first_name"
+                        ? "sticky-col second-col"
+                        : ""
+                    }
+                  >
                     {column.render("Footer")}
                   </td>
                 ))}
