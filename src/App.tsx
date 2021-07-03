@@ -1,11 +1,11 @@
 import React from "react";
 import "./App.css";
-import { BasicTable } from "./components/BasicTable";
+import { StickyTable } from "./components/StickyTable";
 
 function App() {
   return (
     <div className='App'>
-      <BasicTable></BasicTable>
+      <StickyTable />
     </div>
   );
 }
