@@ -22,4 +22,6 @@ export const COLUMNS: Column<DataStructure>[] = [
   },
   { Header: "Country", Footer: "Country", accessor: "country" },
   { Header: "Phone", Footer: "Phone", accessor: "phone" },
+  { Header: "Email", Footer: "Email", accessor: "email" },
+  { Header: "Age", Footer: "Age", accessor: "age" },
 ];

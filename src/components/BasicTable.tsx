@@ -1,8 +1,46 @@
 import * as React from "react";
 import { useTable } from "react-table";
+import styled from "styled-components";
 import MOCK_DATA from "../MOCK_DATA.json";
 import { COLUMNS, DataStructure } from "./columns";
 import "./table.css";
+
+const Styled = styled.div`
+  .view {
+    margin: auto;
+    width: 600px;
+  }
+
+  .wrapper {
+    position: relative;
+    overflow: auto;
+    border: 1px solid black;
+    white-space: nowrap;
+  }
+
+  .sticky-col {
+    position: -webkit-sticky;
+    position: sticky;
+  }
+
+  td.sticky-col {
+    background-color: white;
+  }
+
+  .first-col {
+    width: 100px;
+    min-width: 100px;
+    max-width: 100px;
+    left: 0px;
+  }
+
+  .second-col {
+    width: 150px;
+    min-width: 150px;
+    max-width: 150px;
+    left: 100px;
+  }
+`;
 
 export const BasicTable = () => {
   const columns = React.useMemo(() => COLUMNS, []);
@@ -18,37 +56,65 @@ export const BasicTable = () => {
   } = useTable<DataStructure>({ columns, data });
 
   return (
-    <table {...getTableProps()}>
-      <thead>
-        {headerGroups.map(headerGroup => (
-          <tr {...headerGroup.getHeaderGroupProps()}>
-            {headerGroup.headers.map(column => (
-              <th {...column.getHeaderProps()}>{column.render("Header")}</th>
+    <Styled>
+      <div className='wrapper'>
+        <table {...getTableProps()}>
+          <thead>
+            {headerGroups.map(headerGroup => (
+              <tr {...headerGroup.getHeaderGroupProps()}>
+                {headerGroup.headers.map(column => (
+                  <th
+                    {...column.getHeaderProps()}
+                    className={
+                      column.id === "id"
+                        ? "sticky-col first-col"
+                        : column.id === "first_name"
+                        ? "sticky-col second-col"
+                        : ""
+                    }
+                  >
+                    {column.render("Header")}
+                  </th>
+                ))}
+              </tr>
             ))}
-          </tr>
-        ))}
-      </thead>
-      <tbody {...getTableBodyProps()}>
-        {rows.map(row => {
-          prepareRow(row);
-          return (
-            <tr {...row.getRowProps()}>
-              {row.cells.map(cell => (
-                <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
-              ))}
-            </tr>
-          );
-        })}
-      </tbody>
-      <tfoot>
-        {footerGroups.map(footerGroup => (
-          <tr {...footerGroup.getFooterGroupProps()}>
-            {footerGroup.headers.map(column => (
-              <td {...column.getFooterProps()}>{column.render("Footer")}</td>
+          </thead>
+          <tbody {...getTableBodyProps()}>
+            {rows.map(row => {
+              prepareRow(row);
+              return (
+                <tr {...row.getRowProps()}>
+                  {row.cells.map(cell => (
+                    <td
+                      {...cell.getCellProps()}
+                      className={
+                        cell.column.id === "id"
+                          ? "sticky-col first-col"
+                          : cell.column.id === "first_name"
+                          ? "sticky-col second-col"
+                          : ""
+                      }
+                    >
+                      {cell.render("Cell")}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            {footerGroups.map(footerGroup => (
+              <tr {...footerGroup.getFooterGroupProps()}>
+                {footerGroup.headers.map(column => (
+                  <td {...column.getFooterProps()}>
+                    {column.render("Footer")}
+                  </td>
+                ))}
+              </tr>
             ))}
-          </tr>
-        ))}
-      </tfoot>
-    </table>
+          </tfoot>
+        </table>
+      </div>
+    </Styled>
   );
 };
