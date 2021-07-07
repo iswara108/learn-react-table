@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useTable, useBlockLayout } from "react-table";
+import { useTable, useBlockLayout, useResizeColumns } from "react-table";
 import MOCK_DATA from "../MOCK_DATA.json";
 import { COLUMNS, DataStructure } from "./columns";
 import styled from "styled-components";
@@ -29,6 +29,31 @@ const Styles = styled.div`
       :last-child {
         border-right: 0;
       }
+
+      ${
+        "" /* In this example we use an absolutely position resizer,
+       so this is required. */
+      }
+      position: relative;
+      :last-child {
+        border-right: 0;
+      }
+      .resizer {
+        display: inline-block;
+        background: blue;
+        width: 10px;
+        height: 100%;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transform: translateX(50%);
+        z-index: 1;
+        ${"" /* prevents from scrolling while dragging on touch devices */}
+        touch-action:none;
+        &.isResizing {
+          background: red;
+        }
+      }
     }
   }
 `;
@@ -39,13 +64,26 @@ export const BasicTable = () => {
 
   const defaultColumn = React.useMemo(
     () => ({
+      minWidth: 30,
       width: 150,
+      maxWidth: 400,
     }),
     []
   );
 
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable<DataStructure>({ columns, data, defaultColumn }, useBlockLayout);
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    rows,
+    prepareRow,
+    state,
+    resetResizing,
+  } = useTable<DataStructure>(
+    { columns, data, defaultColumn },
+    useBlockLayout,
+    useResizeColumns
+  );
 
   return (
     <Styles>
@@ -56,6 +94,13 @@ export const BasicTable = () => {
               {headerGroup.headers.map(column => (
                 <div {...column.getHeaderProps()} className='th'>
                   {column.render("Header")}
+                  {/* Use column.getResizerProps to hook up the events correctly */}
+                  <div
+                    {...column.getResizerProps()}
+                    className={`resizer ${
+                      column.isResizing ? "isResizing" : ""
+                    }`}
+                  />
                 </div>
               ))}
             </div>
