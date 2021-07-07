@@ -1,5 +1,10 @@
 import * as React from "react";
-import { useTable, useBlockLayout, useResizeColumns } from "react-table";
+import {
+  useTable,
+  useBlockLayout,
+  useResizeColumns,
+  useColumnOrder,
+} from "react-table";
 import MOCK_DATA from "../MOCK_DATA.json";
 import { COLUMNS, DataStructure } from "./columns";
 import styled from "styled-components";
@@ -77,16 +82,34 @@ export const BasicTable = () => {
     headerGroups,
     rows,
     prepareRow,
+    setColumnOrder,
+    visibleColumns,
     state,
-    resetResizing,
   } = useTable<DataStructure>(
     { columns, data, defaultColumn },
     useBlockLayout,
-    useResizeColumns
+    useResizeColumns,
+    useColumnOrder
   );
 
   return (
     <Styles>
+      <button
+        onClick={() => {
+          setColumnOrder([
+            "id",
+            "last_name",
+            "first_name",
+            "country",
+            "date_of_birth",
+            "phone",
+            "age",
+            "email",
+          ]);
+        }}
+      >
+        Set column order
+      </button>
       <div {...getTableProps()} className='table'>
         <div>
           {headerGroups.map(headerGroup => (
@@ -124,6 +147,10 @@ export const BasicTable = () => {
           })}
         </div>
       </div>
+      <pre>
+        <code>{JSON.stringify(state, null, 2)}</code>
+        {/* {visibleColumns} */}
+      </pre>
     </Styles>
   );
 };
