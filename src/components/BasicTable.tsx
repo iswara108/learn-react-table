@@ -15,66 +15,87 @@ import {
   Droppable,
 } from "react-beautiful-dnd";
 
-const Styles = styled.div`
-  padding: 1rem;
+const TableBody = styled.div``;
 
-  .table {
-    display: inline-block;
-    border-spacing: 0;
-    border: 1px solid black;
+const TableHead = styled.div`
+  ${
+    "" /* In this example we use an absolutely position resizer,
+ so this is required. */
+  }
+  position: relative;
+  :last-child {
+    border-right: 0;
+  }
+`;
 
-    .tr {
-      :last-child {
-        .td {
-          border-bottom: 0;
-        }
+const TableHeadRow = styled.div`
+  border-bottom: 1px solid black;
+`;
+
+const Column = styled.div<{ isDragging: boolean }>`
+  ${({ isDragging }) => isDragging && "background-color: #eee;"}
+`;
+
+const Heading = styled.div<{ isDragging: boolean }>`
+  ${({ isDragging }) => !isDragging && "transform: inherit !important;"}
+  background-color: ${({ isDragging }) =>
+    isDragging ? "lightYellow" : "white"};
+  padding: 0.5rem;
+  border-radius: 0.4rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+`;
+
+const DroppableContainer = styled.div`
+  display: inline-block;
+  border-spacing: 0;
+  border: 1px solid black;
+
+  .tr {
+    :last-child {
+      .td {
+        border-bottom: 0;
       }
     }
+  }
 
-    .th,
-    .td {
-      margin: 0;
-      padding: 0.5rem;
-      border-bottom: 1px solid black;
-      border-right: 1px solid black;
-      :last-child {
-        border-right: 0;
-      }
-
-      ${
-        "" /* In this example we use an absolutely position resizer,
-       so this is required. */
-      }
-      position: relative;
-      :last-child {
-        border-right: 0;
-      }
-      .resizer {
-        display: inline-block;
-        background: blue;
-        width: 10px;
-        height: 100%;
-        position: absolute;
-        right: 0;
-        top: 0;
-        transform: translateX(50%);
-        z-index: 1;
-        ${"" /* prevents from scrolling while dragging on touch devices */}
-        touch-action:none;
-        &.isResizing {
-          background: red;
-        }
-      }
+  .td {
+    padding: 0.5rem;
+    margin: 0;
+    border-bottom: 1px solid black;
+    border-right: 1px solid black;
+    :last-child {
+      border-right: 0;
     }
   }
 `;
 
-const DraggableColumn = styled.div<{ isDragging: boolean }>`
-  background-color: ${({ isDragging }) =>
-    isDragging ? "lightGreen" : "white"};
+const ResizerComponent = styled.svg`
+  display: inline-block;
+  height: 50%;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  fill: currentColor;
+  width: 1em;
+  height: 1em;
+  color: #ddd;
+  display: inline-block;
+  font-size: 1.5rem;
+  transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  flex-shrink: 0;
+  user-select: none;
+  transform: translate(50%, -50%);
+  z-index: 1;
+  ${"" /* prevents from scrolling while dragging on touch devices */}
+  touch-action:none;
 `;
 
-const DroppableContainer = styled.div``;
+const Resizer = (props: React.SVGAttributes<SVGElement>) => (
+  <ResizerComponent {...props}>
+    <path d='M11 19V5h2v14z'></path>
+  </ResizerComponent>
+);
 
 export const BasicTable = () => {
   const columns = React.useMemo(() => COLUMNS, []);
@@ -106,6 +127,7 @@ export const BasicTable = () => {
   );
 
   const currentColumnOrder = React.useRef<string[]>([]);
+  const [isResizing, setIsResizing] = React.useState(false);
 
   const onDragUpdate = ({ destination, source, draggableId }: DragUpdate) => {
     const newColumnOrder = currentColumnOrder.current.slice();
@@ -130,84 +152,75 @@ export const BasicTable = () => {
       onDragUpdate={onDragUpdate}
       onDragEnd={onDragUpdate}
     >
-      <Styles>
-        <Droppable droppableId='all-columns' direction='horizontal'>
-          {provided => (
-            <DroppableContainer
-              {...getTableProps()}
-              className='table'
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-            >
-              <div className='thead'>
-                {headerGroups.map(headerGroup => (
-                  <div {...headerGroup.getHeaderGroupProps()} className='tr'>
-                    {headerGroup.headers.map((column, i) => (
-                      <Draggable
-                        key={column.id}
-                        draggableId={column.id}
-                        index={i}
-                      >
-                        {(provided, snapshot) => (
-                          <DraggableColumn
+      <Droppable droppableId='all-columns' direction='horizontal'>
+        {provided => (
+          <DroppableContainer
+            {...getTableProps()}
+            className='table'
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+          >
+            <TableHead>
+              {headerGroups.map(headerGroup => (
+                <TableHeadRow
+                  {...headerGroup.getHeaderGroupProps()}
+                  className='tr'
+                >
+                  {headerGroup.headers.map((column, i) => (
+                    <Draggable
+                      isDragDisabled={isResizing}
+                      key={column.id}
+                      draggableId={column.id}
+                      index={i}
+                    >
+                      {(provided, snapshot) => (
+                        <Column
+                          isDragging={snapshot.isDragging}
+                          {...column.getHeaderProps()}
+                          className='th'
+                        >
+                          <Heading
                             isDragging={snapshot.isDragging}
-                            {...column.getHeaderProps()}
-                            className='th'
+                            {...provided.dragHandleProps}
+                            {...provided.draggableProps}
+                            ref={provided.innerRef}
                           >
-                            <div
-                              {...provided.dragHandleProps}
-                              {...provided.draggableProps}
-                              style={{
-                                ...provided.draggableProps.style,
-                                ...(!snapshot.isDragging && {
-                                  transform: "",
-                                }),
-                              }}
-                              ref={provided.innerRef}
-                            >
-                              {column.render("Header")}
-                              {/* Use column.getResizerProps to hook up the events correctly */}
-                              <div
-                                {...column.getResizerProps()}
-                                className={`resizer ${
-                                  column.isResizing ? "isResizing" : ""
-                                }`}
-                              />
-                            </div>
-                          </DraggableColumn>
-                        )}
-                      </Draggable>
-                    ))}
+                            {column.render("Header")}
+                            {/* Use column.getResizerProps to hook up the events correctly */}
+                            <Resizer
+                              {...column.getResizerProps()}
+                              onMouseEnter={() => setIsResizing(true)}
+                              onMouseLeave={() => setIsResizing(false)}
+                            />
+                          </Heading>
+                        </Column>
+                      )}
+                    </Draggable>
+                  ))}
+                </TableHeadRow>
+              ))}
+            </TableHead>
+
+            <TableBody {...getTableBodyProps()}>
+              {rows.map(row => {
+                prepareRow(row);
+                return (
+                  <div {...row.getRowProps()} className='tr'>
+                    {row.cells.map(cell => {
+                      return (
+                        <div {...cell.getCellProps()} className='td'>
+                          {cell.render("Cell")}
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
-
-              <div className='tbody' {...getTableBodyProps()}>
-                {rows.map(row => {
-                  prepareRow(row);
-                  return (
-                    <div {...row.getRowProps()} className='tr'>
-                      {row.cells.map(cell => {
-                        return (
-                          <div {...cell.getCellProps()} className='td'>
-                            {cell.render("Cell")}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-              {provided.placeholder}
-            </DroppableContainer>
-          )}
-        </Droppable>
-
-        <pre>
-          <code>{JSON.stringify(state, null, 2)}</code>
-          {/* {visibleColumns} */}
-        </pre>
-      </Styles>
+                );
+              })}
+            </TableBody>
+            {provided.placeholder}
+          </DroppableContainer>
+        )}
+      </Droppable>
     </DragDropContext>
   );
 };
