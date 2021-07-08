@@ -7,7 +7,13 @@ import {
 } from "react-table";
 import MOCK_DATA from "../MOCK_DATA.json";
 import { COLUMNS, DataStructure } from "./columns";
-import styled from "styled-components";
+import styled from "styled-components/macro";
+import {
+  DragDropContext,
+  Draggable,
+  DragUpdate,
+  Droppable,
+} from "react-beautiful-dnd";
 
 const Styles = styled.div`
   padding: 1rem;
@@ -63,6 +69,13 @@ const Styles = styled.div`
   }
 `;
 
+const DraggableColumn = styled.div<{ isDragging: boolean }>`
+  background-color: ${({ isDragging }) =>
+    isDragging ? "lightGreen" : "white"};
+`;
+
+const DroppableContainer = styled.div``;
+
 export const BasicTable = () => {
   const columns = React.useMemo(() => COLUMNS, []);
   const data = React.useMemo(() => MOCK_DATA, []);
@@ -92,65 +105,109 @@ export const BasicTable = () => {
     useColumnOrder
   );
 
-  return (
-    <Styles>
-      <button
-        onClick={() => {
-          setColumnOrder([
-            "id",
-            "last_name",
-            "first_name",
-            "country",
-            "date_of_birth",
-            "phone",
-            "age",
-            "email",
-          ]);
-        }}
-      >
-        Set column order
-      </button>
-      <div {...getTableProps()} className='table'>
-        <div>
-          {headerGroups.map(headerGroup => (
-            <div {...headerGroup.getHeaderGroupProps()} className='tr'>
-              {headerGroup.headers.map(column => (
-                <div {...column.getHeaderProps()} className='th'>
-                  {column.render("Header")}
-                  {/* Use column.getResizerProps to hook up the events correctly */}
-                  <div
-                    {...column.getResizerProps()}
-                    className={`resizer ${
-                      column.isResizing ? "isResizing" : ""
-                    }`}
-                  />
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
+  const currentColumnOrder = React.useRef<string[]>([]);
 
-        <div {...getTableBodyProps()}>
-          {rows.map((row, i) => {
-            prepareRow(row);
-            return (
-              <div {...row.getRowProps()} className='tr'>
-                {row.cells.map(cell => {
+  const onDragUpdate = ({ destination, source, draggableId }: DragUpdate) => {
+    const newColumnOrder = currentColumnOrder.current.slice();
+    const sIndex = source.index;
+    const dIndex = destination && destination.index;
+
+    if (typeof sIndex === "number" && typeof dIndex === "number") {
+      newColumnOrder.splice(sIndex, 1);
+      newColumnOrder.splice(dIndex, 0, draggableId);
+      setColumnOrder(newColumnOrder);
+    }
+  };
+
+  const onDragStart = () =>
+    (currentColumnOrder.current = state.columnOrder.length
+      ? state.columnOrder
+      : visibleColumns.map(c => c.id));
+
+  return (
+    <DragDropContext
+      onDragStart={onDragStart}
+      onDragUpdate={onDragUpdate}
+      onDragEnd={onDragUpdate}
+    >
+      <Styles>
+        <Droppable droppableId='all-columns' direction='horizontal'>
+          {provided => (
+            <DroppableContainer
+              {...getTableProps()}
+              className='table'
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+            >
+              <div className='thead'>
+                {headerGroups.map(headerGroup => (
+                  <div {...headerGroup.getHeaderGroupProps()} className='tr'>
+                    {headerGroup.headers.map((column, i) => (
+                      <Draggable
+                        key={column.id}
+                        draggableId={column.id}
+                        index={i}
+                      >
+                        {(provided, snapshot) => (
+                          <DraggableColumn
+                            isDragging={snapshot.isDragging}
+                            {...column.getHeaderProps()}
+                            className='th'
+                          >
+                            <div
+                              {...provided.dragHandleProps}
+                              {...provided.draggableProps}
+                              style={{
+                                ...provided.draggableProps.style,
+                                ...(!snapshot.isDragging && {
+                                  transform: "",
+                                }),
+                              }}
+                              ref={provided.innerRef}
+                            >
+                              {column.render("Header")}
+                              {/* Use column.getResizerProps to hook up the events correctly */}
+                              <div
+                                {...column.getResizerProps()}
+                                className={`resizer ${
+                                  column.isResizing ? "isResizing" : ""
+                                }`}
+                              />
+                            </div>
+                          </DraggableColumn>
+                        )}
+                      </Draggable>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              <div className='tbody' {...getTableBodyProps()}>
+                {rows.map(row => {
+                  prepareRow(row);
                   return (
-                    <div {...cell.getCellProps()} className='td'>
-                      {cell.render("Cell")}
+                    <div {...row.getRowProps()} className='tr'>
+                      {row.cells.map(cell => {
+                        return (
+                          <div {...cell.getCellProps()} className='td'>
+                            {cell.render("Cell")}
+                          </div>
+                        );
+                      })}
                     </div>
                   );
                 })}
               </div>
-            );
-          })}
-        </div>
-      </div>
-      <pre>
-        <code>{JSON.stringify(state, null, 2)}</code>
-        {/* {visibleColumns} */}
-      </pre>
-    </Styles>
+              {provided.placeholder}
+            </DroppableContainer>
+          )}
+        </Droppable>
+
+        <pre>
+          <code>{JSON.stringify(state, null, 2)}</code>
+          {/* {visibleColumns} */}
+        </pre>
+      </Styles>
+    </DragDropContext>
   );
 };
