@@ -4,6 +4,8 @@ import {
   useBlockLayout,
   useResizeColumns,
   useColumnOrder,
+  useSortBy,
+  HeaderGroup,
 } from "react-table";
 import MOCK_DATA from "../MOCK_DATA.json";
 import { COLUMNS, DataStructure } from "./columns";
@@ -11,6 +13,8 @@ import styled from "styled-components/macro";
 import {
   DragDropContext,
   Draggable,
+  DraggableProvided,
+  DraggableStateSnapshot,
   DragUpdate,
   Droppable,
 } from "react-beautiful-dnd";
@@ -32,9 +36,52 @@ const TableHeadRow = styled.div`
   border-bottom: 1px solid black;
 `;
 
-const Column = styled.div<{ isDragging: boolean }>`
+const StyledColumn = styled.div<{ isDragging: boolean }>`
   ${({ isDragging }) => isDragging && "background-color: #eee;"}
 `;
+
+const Column = ({
+  snapshot,
+  provided,
+  column,
+  setIsResizing,
+}: {
+  provided: DraggableProvided;
+  snapshot: DraggableStateSnapshot;
+  column: HeaderGroup<DataStructure>;
+  setIsResizing: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const [onHover, setOnHover] = React.useState(false);
+  return (
+    <StyledColumn
+      isDragging={snapshot.isDragging}
+      className='th'
+      {...column.getHeaderProps(column.getSortByToggleProps())}
+      onMouseEnter={() => setOnHover(true)}
+      onMouseLeave={() => setOnHover(false)}
+    >
+      <Heading
+        isDragging={snapshot.isDragging}
+        {...provided.dragHandleProps}
+        {...provided.draggableProps}
+        ref={provided.innerRef}
+      >
+        {column.render("Header")}
+        {/* Use column.getResizerProps to hook up the events correctly */}
+        <Resizer
+          {...column.getResizerProps()}
+          onMouseEnter={() => setIsResizing(true)}
+          onMouseLeave={() => setIsResizing(false)}
+        />
+        <SortIcon
+          isSorted={column.isSorted}
+          isSortedDesc={column.isSortedDesc}
+          onHover={onHover}
+        ></SortIcon>
+      </Heading>
+    </StyledColumn>
+  );
+};
 
 const Heading = styled.div<{ isDragging: boolean }>`
   ${({ isDragging }) => !isDragging && "transform: inherit !important;"}
@@ -70,9 +117,43 @@ const DroppableContainer = styled.div`
   }
 `;
 
+const SortIcon = ({
+  isSorted,
+  isSortedDesc,
+  onHover,
+}: {
+  isSorted: boolean;
+  isSortedDesc: boolean | undefined;
+  onHover: boolean;
+}) => {
+  return (
+    <span>
+      {(onHover || isSorted) && (
+        <SortIconComponent
+          className='MuiSvgIcon-root MuiDataGrid-sortIcon MuiSvgIcon-fontSizeSmall'
+          focusable='false'
+          viewBox='0 0 24 24'
+          aria-hidden='true'
+          hint={!isSorted && onHover}
+          up={!!isSortedDesc}
+        >
+          <path d='M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z'></path>
+        </SortIconComponent>
+      )}{" "}
+    </span>
+  );
+};
+
+const SortIconComponent = styled.svg<{ hint: boolean; up: boolean }>`
+  width: 1em;
+  height: 1em;
+  color: ${({ hint }) => (hint ? "#ddd" : "black")};
+  fill: currentColor;
+  transform: rotate(${({ up }) => (up ? 0 : 180)}deg);
+`;
+
 const ResizerComponent = styled.svg`
   display: inline-block;
-  height: 50%;
   position: absolute;
   right: 0;
   top: 50%;
@@ -123,7 +204,8 @@ export const BasicTable = () => {
     { columns, data, defaultColumn },
     useBlockLayout,
     useResizeColumns,
-    useColumnOrder
+    useColumnOrder,
+    useSortBy
   );
 
   const currentColumnOrder = React.useRef<string[]>([]);
@@ -175,25 +257,11 @@ export const BasicTable = () => {
                     >
                       {(provided, snapshot) => (
                         <Column
-                          isDragging={snapshot.isDragging}
-                          {...column.getHeaderProps()}
-                          className='th'
-                        >
-                          <Heading
-                            isDragging={snapshot.isDragging}
-                            {...provided.dragHandleProps}
-                            {...provided.draggableProps}
-                            ref={provided.innerRef}
-                          >
-                            {column.render("Header")}
-                            {/* Use column.getResizerProps to hook up the events correctly */}
-                            <Resizer
-                              {...column.getResizerProps()}
-                              onMouseEnter={() => setIsResizing(true)}
-                              onMouseLeave={() => setIsResizing(false)}
-                            />
-                          </Heading>
-                        </Column>
+                          snapshot={snapshot}
+                          provided={provided}
+                          column={column}
+                          setIsResizing={setIsResizing}
+                        ></Column>
                       )}
                     </Draggable>
                   ))}
