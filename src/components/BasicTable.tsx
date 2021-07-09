@@ -180,8 +180,7 @@ const Resizer = (props: React.SVGAttributes<SVGElement>) => (
 
 export const BasicTable = () => {
   const columns = React.useMemo(() => COLUMNS, []);
-  const data = React.useMemo(() => MOCK_DATA, []);
-
+  const [data, setData] = React.useState(() => MOCK_DATA);
   const defaultColumn = React.useMemo(
     () => ({
       minWidth: 30,
@@ -234,6 +233,20 @@ export const BasicTable = () => {
       onDragUpdate={onDragUpdate}
       onDragEnd={onDragUpdate}
     >
+      <button
+        onClick={() =>
+          setData(data =>
+            data.map(r => ({
+              ...r,
+              first_name: r.first_name.toLocaleLowerCase(),
+            }))
+          )
+        }
+      >
+        Change data
+      </button>
+      <br />
+      <br />
       <Droppable droppableId='all-columns' direction='horizontal'>
         {provided => (
           <DroppableContainer
