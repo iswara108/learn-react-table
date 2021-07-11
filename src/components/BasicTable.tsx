@@ -6,8 +6,11 @@ import {
   useColumnOrder,
   useSortBy,
   HeaderGroup,
+  useRowSelect,
+  UseRowSelectRowProps,
 } from "react-table";
 import MOCK_DATA from "../MOCK_DATA.json";
+import { Checkbox } from "./Checkbox";
 import { COLUMNS, DataStructure } from "./columns";
 import styled from "styled-components/macro";
 import {
@@ -195,6 +198,7 @@ export const BasicTable = () => {
     getTableBodyProps,
     headerGroups,
     rows,
+    selectedFlatRows,
     prepareRow,
     setColumnOrder,
     visibleColumns,
@@ -204,7 +208,24 @@ export const BasicTable = () => {
     useBlockLayout,
     useResizeColumns,
     useColumnOrder,
-    useSortBy
+    useSortBy,
+    hooks => {
+      hooks.visibleColumns.push(columns => {
+        return [
+          {
+            id: "selection",
+            Header: ({ getToggleAllRowsSelectedProps }) => (
+              <Checkbox {...getToggleAllRowsSelectedProps()} />
+            ),
+            Cell: ({ row }: { row: UseRowSelectRowProps<DataStructure> }) => (
+              <Checkbox {...row.getToggleRowSelectedProps()} />
+            ),
+          },
+          ...columns,
+        ];
+      });
+    },
+    useRowSelect
   );
 
   const currentColumnOrder = React.useRef<string[]>([]);
@@ -298,6 +319,17 @@ export const BasicTable = () => {
                 );
               })}
             </TableBody>
+            <pre>
+              <code>
+                {JSON.stringify(
+                  {
+                    selectedFlatRows: selectedFlatRows.map(row => row.original),
+                  },
+                  null,
+                  2
+                )}
+              </code>
+            </pre>
             {provided.placeholder}
           </DroppableContainer>
         )}
