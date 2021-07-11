@@ -8,6 +8,7 @@ import {
   HeaderGroup,
   useRowSelect,
   UseRowSelectRowProps,
+  usePagination,
 } from "react-table";
 import MOCK_DATA from "../MOCK_DATA.json";
 import { Checkbox } from "./Checkbox";
@@ -197,12 +198,18 @@ export const BasicTable = () => {
     getTableProps,
     getTableBodyProps,
     headerGroups,
-    rows,
     selectedFlatRows,
     prepareRow,
     setColumnOrder,
     visibleColumns,
     state,
+    page,
+    nextPage,
+    previousPage,
+    canNextPage,
+    canPreviousPage,
+    pageOptions,
+    state: { pageIndex },
   } = useTable<DataStructure>(
     { columns, data, defaultColumn },
     useBlockLayout,
@@ -225,6 +232,7 @@ export const BasicTable = () => {
         ];
       });
     },
+    usePagination,
     useRowSelect
   );
 
@@ -304,7 +312,7 @@ export const BasicTable = () => {
             </TableHead>
 
             <TableBody {...getTableBodyProps()}>
-              {rows.map(row => {
+              {page.map(row => {
                 prepareRow(row);
                 return (
                   <div {...row.getRowProps()} className='tr'>
@@ -319,6 +327,21 @@ export const BasicTable = () => {
                 );
               })}
             </TableBody>
+            <div>
+              <span>
+                Page <strong>{pageIndex + 1}</strong> of{" "}
+                <strong>{pageOptions.length}</strong>{" "}
+              </span>
+              <button
+                onClick={() => previousPage()}
+                disabled={!canPreviousPage}
+              >
+                Previous
+              </button>
+              <button onClick={() => nextPage()} disabled={!canNextPage}>
+                Next
+              </button>
+            </div>
             <pre>
               <code>
                 {JSON.stringify(
