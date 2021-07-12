@@ -9,10 +9,10 @@ import {
   useRowSelect,
   UseRowSelectRowProps,
   usePagination,
+  Column,
+  Hooks,
 } from "react-table";
-import MOCK_DATA from "../MOCK_DATA.json";
 import { Checkbox } from "./Checkbox";
-import { COLUMNS, DataStructure } from "./columns";
 import styled from "styled-components/macro";
 import {
   DragDropContext,
@@ -44,7 +44,7 @@ const StyledColumn = styled.div<{ isDragging: boolean }>`
   ${({ isDragging }) => isDragging && "background-color: #eee;"}
 `;
 
-const Column = ({
+function ColumnComponent<DataStructure extends {}>({
   snapshot,
   provided,
   column,
@@ -54,7 +54,7 @@ const Column = ({
   snapshot: DraggableStateSnapshot;
   column: HeaderGroup<DataStructure>;
   setIsResizing: React.Dispatch<React.SetStateAction<boolean>>;
-}) => {
+}) {
   const [onHover, setOnHover] = React.useState(false);
   return (
     <StyledColumn
@@ -85,7 +85,7 @@ const Column = ({
       </Heading>
     </StyledColumn>
   );
-};
+}
 
 const Heading = styled.div<{ isDragging: boolean }>`
   ${({ isDragging }) => !isDragging && "transform: inherit !important;"}
@@ -182,9 +182,32 @@ const Resizer = (props: React.SVGAttributes<SVGElement>) => (
   </ResizerComponent>
 );
 
-export const BasicTable = () => {
-  const columns = React.useMemo(() => COLUMNS, []);
-  const [data, setData] = React.useState(() => MOCK_DATA);
+function pushSelectColumn<DataStructure extends {}>(
+  hooks: Hooks<DataStructure>
+) {
+  hooks.visibleColumns.push(columns => {
+    return [
+      {
+        id: "selection",
+        Header: ({ getToggleAllRowsSelectedProps }) => (
+          <Checkbox {...getToggleAllRowsSelectedProps()} />
+        ),
+        Cell: ({ row }: { row: UseRowSelectRowProps<DataStructure> }) => (
+          <Checkbox {...row.getToggleRowSelectedProps()} />
+        ),
+      },
+      ...columns,
+    ];
+  });
+}
+
+export function DataGrid<DataStructure extends {}>({
+  columns,
+  data,
+}: {
+  columns: Column<DataStructure>[];
+  data: DataStructure[];
+}) {
   const defaultColumn = React.useMemo(
     () => ({
       minWidth: 30,
@@ -219,22 +242,7 @@ export const BasicTable = () => {
     useResizeColumns,
     useColumnOrder,
     useSortBy,
-    hooks => {
-      hooks.visibleColumns.push(columns => {
-        return [
-          {
-            id: "selection",
-            Header: ({ getToggleAllRowsSelectedProps }) => (
-              <Checkbox {...getToggleAllRowsSelectedProps()} />
-            ),
-            Cell: ({ row }: { row: UseRowSelectRowProps<DataStructure> }) => (
-              <Checkbox {...row.getToggleRowSelectedProps()} />
-            ),
-          },
-          ...columns,
-        ];
-      });
-    },
+    pushSelectColumn,
     usePagination,
     useRowSelect
   );
@@ -265,20 +273,6 @@ export const BasicTable = () => {
       onDragUpdate={onDragUpdate}
       onDragEnd={onDragUpdate}
     >
-      <button
-        onClick={() =>
-          setData(data =>
-            data.map(r => ({
-              ...r,
-              first_name: r.first_name.toLocaleLowerCase(),
-            }))
-          )
-        }
-      >
-        Change data
-      </button>
-      <br />
-      <br />
       <Droppable droppableId='all-columns' direction='horizontal'>
         {provided => (
           <DroppableContainer
@@ -301,12 +295,12 @@ export const BasicTable = () => {
                       index={i}
                     >
                       {(provided, snapshot) => (
-                        <Column
+                        <ColumnComponent
                           snapshot={snapshot}
                           provided={provided}
                           column={column}
                           setIsResizing={setIsResizing}
-                        ></Column>
+                        ></ColumnComponent>
                       )}
                     </Draggable>
                   ))}
@@ -394,4 +388,4 @@ export const BasicTable = () => {
       </Droppable>
     </DragDropContext>
   );
-};
+}
