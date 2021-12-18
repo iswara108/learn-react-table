@@ -44,7 +44,7 @@ const StyledColumn = styled.div<{ isDragging: boolean }>`
   ${({ isDragging }) => isDragging && 'background-color: #eee;'}
 `
 
-function ColumnComponent<DataStructure extends {}>({
+function ColumnComponent<S extends {}>({
   snapshot,
   provided,
   column,
@@ -52,7 +52,7 @@ function ColumnComponent<DataStructure extends {}>({
 }: {
   provided: DraggableProvided
   snapshot: DraggableStateSnapshot
-  column: HeaderGroup<DataStructure>
+  column: HeaderGroup<S>
   setIsResizing: React.Dispatch<React.SetStateAction<boolean>>
 }) {
   const [onHover, setOnHover] = React.useState(false)
@@ -182,9 +182,7 @@ const Resizer = (props: React.SVGAttributes<SVGElement>) => (
   </ResizerComponent>
 )
 
-function pushSelectColumn<DataStructure extends {}>(
-  hooks: Hooks<DataStructure>
-) {
+function pushSelectColumn<S extends {}>(hooks: Hooks<S>) {
   hooks.visibleColumns.push(columns => {
     return [
       {
@@ -192,7 +190,7 @@ function pushSelectColumn<DataStructure extends {}>(
         Header: ({ getToggleAllRowsSelectedProps }) => (
           <Checkbox {...getToggleAllRowsSelectedProps()} />
         ),
-        Cell: ({ row }: { row: UseRowSelectRowProps<DataStructure> }) => (
+        Cell: ({ row }: { row: UseRowSelectRowProps<S> }) => (
           <Checkbox {...row.getToggleRowSelectedProps()} />
         )
       },
@@ -201,12 +199,12 @@ function pushSelectColumn<DataStructure extends {}>(
   })
 }
 
-export function DataGrid<DataStructure extends {}>({
+export function DataGrid<S extends {}>({
   columns,
   data
 }: {
-  columns: Column<DataStructure>[]
-  data: DataStructure[]
+  columns: Column<S>[]
+  data: S[]
 }) {
   const defaultColumn = React.useMemo(
     () => ({
@@ -236,7 +234,7 @@ export function DataGrid<DataStructure extends {}>({
     pageOptions,
     state: { pageIndex, pageSize },
     setPageSize
-  } = useTable<DataStructure>(
+  } = useTable<S>(
     { columns, data, defaultColumn, initialState: { pageIndex: 3 } },
     useBlockLayout,
     useResizeColumns,
