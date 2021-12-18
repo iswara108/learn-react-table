@@ -201,10 +201,12 @@ function pushSelectColumn<S extends {}>(hooks: Hooks<S>) {
 
 export function DataGrid<S extends {}>({
   columns,
-  data
+  data,
+  myFunction
 }: {
   columns: Column<S>[]
   data: S[]
+  myFunction?: any
 }) {
   const defaultColumn = React.useMemo(
     () => ({
@@ -235,7 +237,13 @@ export function DataGrid<S extends {}>({
     state: { pageIndex, pageSize },
     setPageSize
   } = useTable<S>(
-    { columns, data, defaultColumn, initialState: { pageIndex: 3 } },
+    {
+      columns,
+      data,
+      defaultColumn,
+      initialState: { pageIndex: 0 },
+      myFunction
+    },
     useBlockLayout,
     useResizeColumns,
     useColumnOrder,
