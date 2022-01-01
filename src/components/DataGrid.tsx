@@ -23,9 +23,9 @@ import {
   Droppable
 } from 'react-beautiful-dnd'
 
-const TableBody = styled.div``
+const TableBody = styled.tbody``
 
-const TableHead = styled.div`
+const TableHead = styled.th`
   ${
     '' /* In this example we use an absolutely position resizer,
  so this is required. */
@@ -36,11 +36,11 @@ const TableHead = styled.div`
   }
 `
 
-const TableHeadRow = styled.div`
+const TableHeadRow = styled.tr`
   border-bottom: 1px solid black;
 `
 
-const StyledColumn = styled.div<{ isDragging: boolean }>`
+const StyledColumn = styled.th<{ isDragging: boolean }>`
   ${({ isDragging }) => isDragging && 'background-color: #eee;'}
 `
 
@@ -97,7 +97,7 @@ const Heading = styled.div<{ isDragging: boolean }>`
   padding-bottom: 1rem;
 `
 
-const DroppableContainer = styled.div`
+const DroppableContainer = styled.table`
   display: inline-block;
   border-spacing: 0;
   border: 1px solid black;
@@ -318,15 +318,15 @@ export function DataGrid<S extends {}>({
               {page.map(row => {
                 prepareRow(row)
                 return (
-                  <div {...row.getRowProps()} className="tr">
+                  <tr {...row.getRowProps()} className="tr">
                     {row.cells.map(cell => {
                       return (
-                        <div {...cell.getCellProps()} className="td">
+                        <td {...cell.getCellProps()} className="td">
                           {cell.render('Cell')}
-                        </div>
+                        </td>
                       )
                     })}
-                  </div>
+                  </tr>
                 )
               })}
             </TableBody>
