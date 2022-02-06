@@ -33,7 +33,7 @@ export const COLUMNS: Column<DataStructure>[] = [
   { Header: 'Id', Footer: 'Id', accessor: 'id' },
   {
     Header: 'First Name',
-    Footer: 'First Name',
+    Footer: 'FName Footer',
     accessor: 'first_name',
     // Cell: React.memo(({ value }) => <div>{value}</div>)
     Cell: React.memo(props => {

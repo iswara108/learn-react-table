@@ -25,7 +25,9 @@ import {
 
 const TableBody = styled.tbody``
 
-const TableHead = styled.th`
+const TableFooter = styled.tfoot``
+
+const TableHead = styled.thead`
   ${
     '' /* In this example we use an absolutely position resizer,
  so this is required. */
@@ -36,11 +38,11 @@ const TableHead = styled.th`
   }
 `
 
-const TableHeadRow = styled.tr`
+const TableRowInHeader = styled.tr`
   border-bottom: 1px solid black;
 `
 
-const StyledColumn = styled.th<{ isDragging: boolean }>`
+const TableHeaderStyledColumn = styled.th<{ isDragging: boolean }>`
   ${({ isDragging }) => isDragging && 'background-color: #eee;'}
 `
 
@@ -57,7 +59,7 @@ function ColumnComponent<S extends {}>({
 }) {
   const [onHover, setOnHover] = React.useState(false)
   return (
-    <StyledColumn
+    <TableHeaderStyledColumn
       isDragging={snapshot.isDragging}
       className="th"
       {...column.getHeaderProps(column.getSortByToggleProps())}
@@ -83,7 +85,7 @@ function ColumnComponent<S extends {}>({
           onHover={onHover}
         ></SortIcon>
       </Heading>
-    </StyledColumn>
+    </TableHeaderStyledColumn>
   )
 }
 
@@ -192,7 +194,8 @@ function pushSelectColumn<S extends {}>(hooks: Hooks<S>) {
         ),
         Cell: ({ row }: { row: UseRowSelectRowProps<S> }) => (
           <Checkbox {...row.getToggleRowSelectedProps()} />
-        )
+        ),
+        Footer: () => <div>Total:</div>
       },
       ...columns
     ]
@@ -218,6 +221,7 @@ export function DataGrid<S extends {}>({
   )
 
   const {
+    footerGroups,
     getTableProps,
     getTableBodyProps,
     headerGroups,
@@ -289,7 +293,7 @@ export function DataGrid<S extends {}>({
           >
             <TableHead>
               {headerGroups.map(headerGroup => (
-                <TableHeadRow
+                <TableRowInHeader
                   {...headerGroup.getHeaderGroupProps()}
                   className="tr"
                 >
@@ -310,7 +314,7 @@ export function DataGrid<S extends {}>({
                       )}
                     </Draggable>
                   ))}
-                </TableHeadRow>
+                </TableRowInHeader>
               ))}
             </TableHead>
 
@@ -330,64 +334,84 @@ export function DataGrid<S extends {}>({
                 )
               })}
             </TableBody>
-            <div>
-              <span>
-                Page <strong>{pageIndex + 1}</strong> of{' '}
-                <strong>{pageOptions.length}</strong>{' '}
-              </span>
-              <span>
-                | Go to page:{' '}
-                <input
-                  type="number"
-                  value={pageIndex + 1}
-                  onChange={e => {
-                    const pageNumber = e.target.value
-                      ? Number(e.target.value) - 1
-                      : 0
-                    gotoPage(pageNumber)
-                  }}
-                />
-              </span>
-              <select
-                value={pageSize}
-                onChange={e => setPageSize(Number(e.target.value))}
-              >
-                {[10, 25, 50].map(pageSize => (
-                  <option key={pageSize} value={pageSize}>
-                    Show {pageSize}
-                  </option>
-                ))}
-              </select>
-              <button onClick={() => gotoPage(0)} disabled={!canPreviousPage}>
-                {'<<'}
-              </button>
-              <button
-                onClick={() => previousPage()}
-                disabled={!canPreviousPage}
-              >
-                Previous
-              </button>
-              <button onClick={() => nextPage()} disabled={!canNextPage}>
-                Next
-              </button>
-              <button
-                onClick={() => gotoPage(pageCount - 1)}
-                disabled={!canNextPage}
-              >
-                {'>>'}
-              </button>
-            </div>
-            <pre>
-              <code>
-                {JSON.stringify(
-                  {
-                    selectedFlatRows: selectedFlatRows.map(row => row.original)
-                  },
-                  null,
-                  2
-                )}
-              </code>
-            </pre>
+            <TableFooter>
+              {footerGroups.map(group => (
+                <tr {...group.getFooterGroupProps()}>
+                  {group.headers.map(column => (
+                    <td {...column.getFooterProps()}>
+                      {column.render('Footer')}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+              <tr>
+                <td>
+                  <pre>
+                    <code>
+                      {JSON.stringify(
+                        {
+                          selectedFlatRows: selectedFlatRows.map(
+                            row => row.original
+                          )
+                        },
+                        null,
+                        2
+                      )}
+                    </code>
+                  </pre>
+                  <div>
+                    <span>
+                      Page <strong>{pageIndex + 1}</strong> of{' '}
+                      <strong>{pageOptions.length}</strong>{' '}
+                    </span>
+                    <span>
+                      | Go to page:{' '}
+                      <input
+                        type="number"
+                        value={pageIndex + 1}
+                        onChange={e => {
+                          const pageNumber = e.target.value
+                            ? Number(e.target.value) - 1
+                            : 0
+                          gotoPage(pageNumber)
+                        }}
+                      />
+                    </span>
+                    <select
+                      value={pageSize}
+                      onChange={e => setPageSize(Number(e.target.value))}
+                    >
+                      {[10, 25, 50].map(pageSize => (
+                        <option key={pageSize} value={pageSize}>
+                          Show {pageSize}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => gotoPage(0)}
+                      disabled={!canPreviousPage}
+                    >
+                      {'<<'}
+                    </button>
+                    <button
+                      onClick={() => previousPage()}
+                      disabled={!canPreviousPage}
+                    >
+                      Previous
+                    </button>
+                    <button onClick={() => nextPage()} disabled={!canNextPage}>
+                      Next
+                    </button>
+                    <button
+                      onClick={() => gotoPage(pageCount - 1)}
+                      disabled={!canNextPage}
+                    >
+                      {'>>'}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </TableFooter>
             {provided.placeholder}
           </DroppableContainer>
         )}
